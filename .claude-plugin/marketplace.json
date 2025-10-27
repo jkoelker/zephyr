@@ -1,0 +1,42 @@
+{
+  "name": "options-trading-strategies",
+  "owner": {
+    "name": "jkoelker"
+  },
+  "metadata": {
+    "description": "Comprehensive trading tools for systematic options strategies, technical analysis, and portfolio risk management with Schwab integration"
+  },
+  "plugins": [
+    {
+      "name": "trading-tools",
+      "description": "Complete trading toolkit including 0DTE options strategies, technical indicators (ATR, RSI, SMA, etc.), portfolio-based position sizing, and systematic risk management. Integrates with Schwab for live trading.",
+      "source": "./",
+      "author": {
+        "name": "jkoelker"
+      },
+      "category": "trading",
+      "keywords": [
+        "options",
+        "0dte",
+        "iron-condor",
+        "technical-indicators",
+        "atr",
+        "rsi",
+        "sma",
+        "spx",
+        "vix1d",
+        "systematic-trading",
+        "portfolio-management",
+        "risk-management",
+        "schwab"
+      ],
+      "strict": false,
+      "skills": [
+        "./skills/technical-indicators"
+      ],
+      "agents": [
+        "./agents/0dte-iron-condor.md"
+      ]
+    }
+  ]
+}
