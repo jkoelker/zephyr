@@ -20,14 +20,14 @@ Standalone Python scripts for price-derived indicators. Use them on demand—no 
 
 1. Pull price/option data from your source.
 2. Convert it to JSON inline:
-   ```bash
+```bash
    json=$(python - <<'PY'
 import json
 candles = [...]  # replace with your OHLC or close-price data
 print(json.dumps(candles))
 PY
 )
-   ```
+```
 3. Call the needed script with that JSON (or supply spot/IV for options tools).
 4. Parse the JSON response—fields are flat and script-specific.
 
