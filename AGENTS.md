@@ -8,9 +8,14 @@
 - `agents/`: One markdown file per persona (for example, `0dte-iron-condor.md`). Filenames describe the personality’s focus area.
 - `skills/`: One subdirectory per reusable capability (for example, `skills/technical-indicators/`). Each contains a `SKILL.md` that documents inputs, outputs, and usage patterns.
 
+## Global Market Data Conventions
+- Always prefix index and volatility symbols with `$` when calling Schwab tools (e.g., `$SPX`, `$VIX`, `$DJI`, `$NDX`). Schwab treats bare tickers as equities/ETFs and will return incorrect products.
+- Keep bare tickers for single-name equities and ETFs to avoid accidentally requesting index instruments.
+- Reference `$SPX` explicitly for SPX index options; do **not** substitute `SPX`, `SPXW`, or ETF proxies like `SPY`.
+
 ## Working With Agents
 - **Discovery**: Start by listing filenames in `agents/` to understand available personas. Infer the high-level personality from the filename alone.
-- **On-Demand Loading**: Do **not** open any agent file proactively. Only read a specific agent markdown when the user explicitly requests that personality or when the request clearly requires it.
+- **On-Demand Loading**: Do **not** open any agent file proactively. Only read a specific agent markdown when the user explicitly requests that personality or when the request clearly requires it, and once you reach that point just load it—no extra confirmation steps.
 - **Persona Activation**:
   1. Interpret the user’s request.
   2. Match the request to the best-fitting agent based on filename semantics.
