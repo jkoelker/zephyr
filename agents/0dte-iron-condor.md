@@ -78,7 +78,7 @@ Complete this checklist during a single data sweep and treat any unchecked item 
 STOP immediately if any item remains unchecked; capture the blocker and advise the user when to retry.
 
 > ### Quick Run Workflow
-> 0. **Data Sweep** – `get_account_with_positions()`, `get_quotes(["$SPX","$VIX","$VIX1D"])`, `get_price_history_every_day()`, indicator scripts (`atr.py`, `rsi.py`, `expected_move.py`), and `get_option_chain()`; refresh only when data is older than five minutes, the plan shifts, or the user explicitly requests new marks.
+> 0. **Data Sweep** – Invoke the `schwab-data-sweep` skill (inputs: `primary_symbol="$SPX"`, `additional_symbols=["$VIX","$VIX1D"]`, `indicators=["atr","rsi","expected_move"]`, `include_option_chain=true`) to collect the single Schwab snapshot; reuse the cached payload unless it is older than five minutes, the plan shifts, or the user explicitly requests new marks.
 > 1. **Evaluate** – Apply the regime matrix, ATR/expected-move spacing, and risk sizing using cached payloads; abort if credit falls below regime floors, shorts drift inside the expected move, or prerequisites fail.
 > 2. **Execute** – Build the four-leg structure, size by risk, and stage orders once the user approves; halt on margin shortfalls or outside time window.
 > 3. **Monitor (On Demand)** – Run checkpoint snapshots (12:00, 14:00, 15:30 ET) or respond to triggers using `get_quotes()` and `get_orders()`; reuse cached indicators unless conditions change materially.
@@ -121,13 +121,7 @@ Follow these stages in sequence. Document each step's output. Advance to the nex
 
 **Step 0.1 Fetch Current Market Data**
 
-Use Schwab MCP tools to gather real-time data:
-
-```
-get_quotes(symbols=["$SPX","$VIX","$VIX1D"])
-```
-
-Extract and display:
+Use the `quotes` payload returned by the `schwab-data-sweep` snapshot to capture real-time levels:
 - SPX current price and intraday trend (vs open)
 - VIX current level and direction (30-day forward volatility)
 - **VIX1D current level** (1-day intraday volatility) - primary indicator
@@ -152,17 +146,7 @@ Output classification:
 
 **Step 0.3 Calculate ATR-Based Strike Spacing**
 
-Fetch 10-session daily price history for SPX:
-
-```
-get_price_history_every_day(
-  symbol="$SPX",
-  start_datetime=(today - 14 days),
-  end_datetime=today
-)
-```
-
-Run `mcp__schwab__atr` on the retrieved candles to generate the 10-day average true range suite. Capture and store:
+Reference the `historical` and `indicators` blocks from the snapshot. Use the returned ATR series to generate the 10-day average true range suite. Capture and store:
 - **ATR_10** (full value)
 - **Half ATR** (0.5×)
 - **Two ATR** (2×) if provided
@@ -171,10 +155,10 @@ Explicitly note the timestamp of the calculation. These become the minimum spaci
 
 **Step 0.4 Capture Momentum & Expected Move (Schwab MCP)**
 
-Using Schwab indicator endpoints:
-- Call `mcp__schwab__rsi` with the same candle payload to compute **RSI(14)** and gauge momentum extremes.
-- Invoke `mcp__schwab__expected_move` (or the preferred MCP volatility calculator) with current option inputs to produce the session **Expected Move**. Document upper/lower boundaries and any strike guidance returned by the tool.
-- Record any additional indicators requested (e.g., Bollinger Band width) via the corresponding MCP analytics (such as `mcp__schwab__bollinger_bands`) for context.
+Using the `indicators` object from the snapshot:
+- Surface **RSI(14)** to gauge momentum extremes.
+- Extract the session **Expected Move** upper/lower boundaries and any strike guidance.
+- Record additional metrics (e.g., Bollinger Band width) when the skill was invoked with those indicator flags.
 
 Store the outputs in the working summary so Step 1 can reference them directly without recomputation.
 
@@ -191,14 +175,7 @@ These figures become the baseline inputs for Step 1 strike selection and risk va
 
 **Step 0.5 Calculate Position Size Based on Portfolio Risk**
 
-Use portfolio-based position sizing to determine lot quantity:
-
-**Step 1: Get Account Balance**
-```
-get_account_with_positions(account_hash=<primary_hash>)
-```
-
-Extract:
+Use the `account` payload from the snapshot to anchor risk sizing. Extract:
 - **Total Portfolio Value**: Net liquidation value
 - **Available Capital**: Cash + margin available for options
 
