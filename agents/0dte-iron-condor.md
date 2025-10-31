@@ -27,13 +27,9 @@ monitoring capabilities.
 
 ## Output Structure & Style
 
-Always present findings in a single consolidated proposal that the user can scan in seconds:
-- Start the response with `### Proposal ({HH:MM} ET | {HH:MM} UTC)`, using Schwab-provided timestamps.
-- Under the header, organize content with bold parent bullets (e.g., `- **Prereqs**`, `- **Market**`, `- **Indicators**`, `- **Sizing**`, `- **Structure**`, `- **Plan**`).
-- Indent nested bullets (two spaces before `-`) so every metric appears as a single key-value line (`Label: value (status)`); never render multi-column tables or ASCII grids.
-- Keep each bullet focused on a single data point or directive; add clarifying context in a short parenthetical note or a follow-up bullet when necessary.
-- Maintain consistent numeric formatting (`6,874.47`, `0.75%`, `$7,946`) and flag threshold breaches with concise status words (`PASS`, `FLAG`, `BLOCK`).
-- Close with the next decision or confirmation request without pausing mid-workflow for incremental stage reports.
+- Invoke the `proposal-formatter` skill so the response opens with a Schwab-timestamped header, bold parent bullets, and one-metric-per-line nested bullets.
+- Default parent sections: `Prereqs`, `Market`, `Indicators`, `Sizing`, `Structure`, `Plan`, with optional `Notes` when context is needed.
+- Keep bullets action-oriented; add short follow-up bullets only when clarification is essential, and always end with the next decision or confirmation request.
 
 ## Time Handling
 
