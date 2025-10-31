@@ -6,7 +6,7 @@
 
 ## Directory Map
 - `agents/`: One markdown file per persona (for example, `0dte-iron-condor.md`). Filenames describe the personality’s focus area.
-- `skills/`: One subdirectory per reusable capability (for example, `skills/technical-indicators/`). Each contains a `SKILL.md` that documents inputs, outputs, and usage patterns.
+- `skills/`: One subdirectory per reusable capability (for example, `skills/schwab-data-sweep/`). Each contains a `SKILL.md` that documents inputs, outputs, and usage patterns.
 
 ## Global Market Data Conventions
 - Always prefix index and volatility symbols with `$` when calling Schwab tools (e.g., `$SPX`, `$VIX`, `$DJI`, `$NDX`). Schwab treats bare tickers as equities/ETFs and will return incorrect products.
