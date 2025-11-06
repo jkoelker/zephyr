@@ -435,6 +435,11 @@ create_option_symbol(
 
 **3.4 Submit Iron Condor Order**
 
+Order type & strategy defaults for Schwab MCP:
+- Credit structures (short spreads, iron condors) → `order_type="NET_CREDIT"`
+- Debit structures (long spreads, hedges) → `order_type="NET_DEBIT"`
+- Always pair condors with `complex_order_strategy_type="IRON_CONDOR"` so Schwab routes the four-leg ticket correctly.
+
 Use the combo order function for iron condors with calculated position size:
 
 ```
@@ -470,11 +475,31 @@ place_option_combo_order(
 )
 ```
 
+Example (1 lot, $1.55 credit target for 6,870/6,880/6,840/6,830 Oct 3 weekly):
+
+```
+place_option_combo_order(
+  account_hash=PRIMARY_HASH,
+  order_type="NET_CREDIT",
+  price="1.55",
+  duration="DAY",
+  session="NORMAL",
+  complex_order_strategy_type="IRON_CONDOR",
+  legs=[
+    {"instruction": "SELL_TO_OPEN", "symbol": "SPXW  251103C06870000", "quantity": 1},
+    {"instruction": "BUY_TO_OPEN",  "symbol": "SPXW  251103C06880000", "quantity": 1},
+    {"instruction": "SELL_TO_OPEN", "symbol": "SPXW  251103P06840000", "quantity": 1},
+    {"instruction": "BUY_TO_OPEN",  "symbol": "SPXW  251103P06830000", "quantity": 1}
+  ]
+)
+```
+
 **IMPORTANT:**
 - Set price as **net credit** (positive number)
 - Use **calculated lot size** from Step 0.5 for ALL leg quantities
 - Ensure sufficient margin for total position (lot size × max loss per
   contract)
+- Quote limit prices in **$0.05 increments**; round proposed credits to the nearest valid tick before staging orders.
 
 **3.5 Confirm Order Status**
 
@@ -576,7 +601,7 @@ Total: $240 profit (vs $160 on single exit at 50%)
 ```
 
 **Mandatory exits regardless of profit target or position size:**
-- **15:35 ET**: Close ALL remaining positions (end-of-day protocol)
+- **End-of-day**: Follow Section 4.4; all positions must be flat by 15:35 ET
 - **Breach risk**: Price within 10 points of short strike with <2 hours
   remaining
 - **Volatility spike**: VIX1D spikes >30% from entry level
@@ -590,7 +615,7 @@ Distance ≤10 pts & ≥2 h to expiry → Roll threatened short 10-20 pts OTM (k
 Distance ≤10 pts & <2 h to expiry → Close entire condor. <30 min to close? Use marketable order.
 Both sides threatened simultaneously → Flatten now; no rolls.
 14:00 ET checkpoint → If any short within 10 pts or VIX1D +30% vs entry, close while P&L ≥$0 or loss < $100 unless clear technical barrier.
-Mandatory flat 15:35 ET regardless of P&L.
+Mandatory flat per Section 4.4 regardless of P&L.
 ```
 
 **4.4 End-of-Day Protocol**
@@ -598,8 +623,7 @@ Mandatory flat 15:35 ET regardless of P&L.
 **Mandatory flat by 15:35 ET:**
 - Close all 0DTE positions before market close
 - Use limit orders with realistic prices
-- If order rejected for tick size, adjust to valid increment
-  ($0.05 minimum)
+- Ensure fills honor the tick-size rule from Step 3.4
 
 Do not hold 0DTE positions into the close - pin risk and extreme late-day volatility
 are unacceptable.
@@ -623,7 +647,7 @@ As an active agent, implement time-based checkpoints:
 **15:30 PM ET - FINAL Exit Preparation:**
 - Prepare to close all remaining positions by 15:35 ET
 - Use limit orders with realistic pricing
-- Adjust for valid tick sizes ($0.05 minimum)
+- Confirm orders respect the Step 3.4 tick-size rule
 - Action: Close ALL positions, no exceptions
 
 #### Trade Wrap & Documentation
@@ -790,26 +814,12 @@ If breach occurs:
 - Present clear options: roll, close threatened side, or close all
 - Emphasize risk over profit preservation
 
-## Session Hand-off
+## Session Wrap-up
 
-Before ending monitoring session:
-- Confirm all exit orders placed or working
-- Specify next check-in time
-- Note any manual adjustments that still require follow-up
-
-## Compliance & Logging
-
-- Maintain a minimal audit trail: capture key MCP tool call IDs and order timestamps when relevant.
-- Note only material deviations from the workflow that impact future actions.
-
-## Hand-off Notes
-
-Before ending session, ensure:
-- All orders confirmed (filled or working)
-- Exit plan communicated clearly
-- Next check time specified (typically next trading day open, or
-  monitoring time if position still open)
-- Any manual overrides documented in "Adjustments" section
+Before ending monitoring:
+- Confirm all exit orders are placed or working and restate the current exit plan status.
+- Specify the next check-in time (next trading day open or scheduled monitor) and note any manual adjustments that still require follow-up.
+- Capture a minimal audit trail: key MCP tool call IDs, order timestamps, and any material deviations from the workflow that could impact future actions.
 
 This agent provides complete 0DTE iron condor trading capabilities with
 systematic execution, active monitoring, and performance tracking while prioritizing real-time execution and concise updates. User
